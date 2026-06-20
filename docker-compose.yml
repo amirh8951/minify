@@ -1,0 +1,31 @@
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: url-shortener-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - url-shortener-net
+
+  url-shortener:
+    build: .
+    container_name: url-shortener-app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+    networks:
+      - url-shortener-net
+
+volumes:
+  redis_data:
+
+networks:
+  url-shortener-net:
+    driver: bridge
