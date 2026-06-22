@@ -7,32 +7,46 @@ A production-style URL shortener built with Go, Fiber v3, and Redis.
 The project follows Clean Architecture principles with clear separation of concerns:
 
 ```
-┌─────────────────────────────────────────────────┐
-│                   Handler (HTTP)                 │
-├─────────────────────────────────────────────────┤
-│                   Service (Logic)                │
-├─────────────────────────────────────────────────┤
-│                  Repository (Data)               │
-├─────────────────────────────────────────────────┤
-│               Redis (Persistence)                │
-└─────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────┐
+│              Handler (HTTP Adapter)                   │
+│          ──── Input / Output Adapter ────             │
+├──────────────────────────────────────────────────────┤
+│                Use Case Layer                         │
+│           ──── Application Business Rules ────        │
+├──────────────────────────────────────────────────────┤
+│                Domain Layer                           │
+│           ──── Enterprise Business Rules ────         │
+├──────────────────────────────────────────────────────┤
+│              Repository (Redis Adapter)               │
+│          ──── Output / Persistence Adapter ────       │
+└──────────────────────────────────────────────────────┘
 ```
 
-Each layer communicates through interfaces, enabling testability and maintainability.
+Each inner layer (Domain) has no knowledge of outer layers. The Use Case layer
+defines *ports* (interfaces) that the outer *adapters* implement — enabling
+testability and maintainability through dependency inversion.
 
 ## Folder Structure
 
 ```
 .
 ├── cmd/
-│   └── main.go              # Application entry point
+│   └── main.go              # Application entry point (composition root)
 ├── internal/
-│   ├── config/              # Environment configuration
-│   ├── handler/             # HTTP request handlers (Fiber)
-│   ├── middleware/           # Rate limiter & logger
-│   ├── model/               # Request/response structs
-│   ├── repository/          # Data access interface + Redis impl
-│   └── service/             # Business logic
+│   ├── domain/              # Entities, value objects, sentinel errors
+│   │   ├── url.go           # ShortCode, OriginalURL, ShortenedURL
+│   │   └── errors.go        # ErrInvalidURL, ErrShortCodeNotFound, etc.
+│   ├── usecase/             # Application business rules + ports
+│   │   ├── ports.go         # URLRepository interface (output port)
+│   │   ├── shorten.go       # CreateShortURL use case
+│   │   └── redirect.go      # Resolve short code use case
+│   ├── adapter/
+│   │   ├── handler/
+│   │   │   └── url_handler.go  # HTTP → use case translator
+│   │   └── repository/
+│   │       └── redis_repository.go # Redis adapter implementing ports
+│   ├── middleware/           # Rate limiter & logger (unchanged)
+│   └── config/              # Environment configuration
 ├── pkg/
 │   └── redis/               # Redis client factory
 ├── Dockerfile               # Multi-stage Docker build
@@ -218,8 +232,11 @@ The server handles `SIGINT` and `SIGTERM` signals:
 
 ## Design Decisions
 
-- **Short code generation**: 7-character cryptographically random alphanumeric string (62⁷ ≈ 3.5 trillion combinations).
-- **No global state**: Dependencies are injected explicitly at startup in `cmd/main.go`.
+- **Short code generation**: 7-character cryptographically random alphanumeric string (62⁷ ≈ 3.5 trillion combinations) — lives in the domain layer as a pure value object.
+- **Domain value objects**: `ShortCode` and `OriginalURL` are validated at construction, making invalid states unrepresentable throughout the application.
+- **Sentinel error matching**: Error matching uses `errors.Is()` against domain sentinel errors (`domain.ErrInvalidURL`, `domain.ErrShortCodeNotFound`, etc.) — no fragile string comparisons.
+- **No global state**: Dependencies are injected explicitly at startup in `cmd/main.go`, following the composition root pattern.
+- **Ports & adapters**: The use case layer defines `URLRepository` as a port interface; the Redis implementation in `adapter/repository` is an output adapter. The HTTP handler in `adapter/handler` is an input adapter.
 - **TTL-based expiration**: Short URLs auto-expire after 24 hours via Redis TTL.
 - **Minimal Docker image**: Multi-stage build produces a `scratch`-based image (< 15 MB).
 

@@ -10,11 +10,11 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
+	adapterHandler "myfirstproject/internal/adapter/handler"
+	adapterRepo "myfirstproject/internal/adapter/repository"
 	"myfirstproject/internal/config"
-	"myfirstproject/internal/handler"
 	"myfirstproject/internal/middleware"
-	"myfirstproject/internal/repository"
-	"myfirstproject/internal/service"
+	"myfirstproject/internal/usecase"
 	"myfirstproject/pkg/redis"
 )
 
@@ -27,9 +27,13 @@ func main() {
 	}
 	defer rdb.Close()
 
-	urlRepo := repository.NewURLRepository(rdb)
-	urlSvc := service.NewURLService(urlRepo, cfg.BaseURL, cfg.URLTTL)
-	urlHandler := handler.NewURLHandler(urlSvc)
+	// --- Wiring (domain → usecase → adapter) ---
+	urlRepo := adapterRepo.NewURLRepository(rdb)
+
+	shortenUC := usecase.NewShortenUseCase(urlRepo, cfg.BaseURL, cfg.URLTTL)
+	redirectUC := usecase.NewRedirectUseCase(urlRepo)
+
+	urlHandler := adapterHandler.NewURLHandler(shortenUC, redirectUC)
 
 	app := fiber.New()
 
