@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"myfirstproject/internal/domain"
+	"minify/internal/domain"
 )
 
 // RedirectUseCase orchestrates resolving a short code to its original URL.

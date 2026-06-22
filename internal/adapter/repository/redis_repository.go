@@ -6,8 +6,8 @@ import (
 
 	"github.com/redis/go-redis/v9"
 
-	"myfirstproject/internal/domain"
-	"myfirstproject/internal/usecase"
+	"minify/internal/domain"
+	"minify/internal/usecase"
 )
 
 type urlRepository struct {

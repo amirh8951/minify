@@ -88,7 +88,7 @@ testability and maintainability through dependency inversion.
 
 ```bash
 # Clone and enter the project
-cd myfirstproject
+cd minify
 
 # Copy environment file
 cp .env.example .env

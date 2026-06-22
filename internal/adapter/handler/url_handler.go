@@ -5,8 +5,8 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	"myfirstproject/internal/domain"
-	"myfirstproject/internal/usecase"
+	"minify/internal/domain"
+	"minify/internal/usecase"
 )
 
 type urlHandler struct {

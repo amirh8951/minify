@@ -1,4 +1,4 @@
-module myfirstproject
+module minify
 
 go 1.26
 

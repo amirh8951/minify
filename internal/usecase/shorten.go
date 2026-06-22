@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"myfirstproject/internal/domain"
+	"minify/internal/domain"
 )
 
 // ShortenResult holds the output of a successful URL shortening.

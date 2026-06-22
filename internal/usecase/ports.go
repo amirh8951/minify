@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"myfirstproject/internal/domain"
+	"minify/internal/domain"
 )
 
 // URLRepository is the output port for persisting shortened URLs.

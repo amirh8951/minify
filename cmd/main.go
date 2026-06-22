@@ -10,12 +10,12 @@ import (
 
 	"github.com/gofiber/fiber/v3"
 
-	adapterHandler "myfirstproject/internal/adapter/handler"
-	adapterRepo "myfirstproject/internal/adapter/repository"
-	"myfirstproject/internal/config"
-	"myfirstproject/internal/middleware"
-	"myfirstproject/internal/usecase"
-	"myfirstproject/pkg/redis"
+	adapterHandler "minify/internal/adapter/handler"
+	adapterRepo "minify/internal/adapter/repository"
+	"minify/internal/config"
+	"minify/internal/middleware"
+	"minify/internal/usecase"
+	"minify/pkg/redis"
 )
 
 func main() {
